@@ -90,7 +90,7 @@ endif
 #
 
 # Define project name here
-PROJECT = BLDC_4_ChibiOS
+PROJECT = VESC6_FOR_IM
 
 # Imported source files and paths
 CHIBIOS = ChibiOS_3.0.2
@@ -150,6 +150,7 @@ CSRC = $(STARTUPSRC) \
        flash_helper.c \
        mc_interface.c \
        mcpwm_foc.c \
+       mcpwm_vhz.c \
        gpdrive.c \
        confgenerator.c \
        timer.c \

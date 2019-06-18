@@ -85,6 +85,7 @@ void mc_interface_mc_timer_isr(void);
 
 // Interrupt handlers
 void mc_interface_adc_inj_int_handler(void);
+void mc_interface_tim_sample_int_handler(void);  // ajpina
 
 // External variables
 extern volatile uint16_t ADC_Value[];

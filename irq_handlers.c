@@ -53,7 +53,13 @@ CH_IRQ_HANDLER(HW_ENC_TIM_ISR_VEC) {
 
 CH_IRQ_HANDLER(TIM8_CC_IRQHandler) {
 	if (TIM_GetITStatus(TIM8, TIM_IT_CC1) != RESET) {
-		mcpwm_foc_tim_sample_int_handler();
+
+		//ajpina INIT
+		mc_interface_tim_sample_int_handler();
+		//ajpina END
+
+		// before ajpina
+		// mcpwm_foc_tim_sample_int_handler();
 
 		// Clear the IT pending bit
 		TIM_ClearITPendingBit(TIM8, TIM_IT_CC1);

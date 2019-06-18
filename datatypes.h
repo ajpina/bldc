@@ -75,7 +75,8 @@ typedef enum {
 	MOTOR_TYPE_BLDC = 0,
 	MOTOR_TYPE_DC,
 	MOTOR_TYPE_FOC,
-	MOTOR_TYPE_GPD
+	MOTOR_TYPE_GPD,
+	MOTOR_TYPE_VHZ			//ajpina
 } mc_motor_type;
 
 typedef enum {

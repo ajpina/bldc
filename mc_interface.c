@@ -20,6 +20,7 @@
 #include "mc_interface.h"
 #include "mcpwm.h"
 #include "mcpwm_foc.h"
+#include "mcpwm_vhz.h"	// ajpina
 #include "ledpwm.h"
 #include "stm32f4xx_conf.h"
 #include "hw.h"
@@ -194,6 +195,12 @@ void mc_interface_init(mc_configuration *configuration) {
 		gpdrive_init(&m_conf);
 		break;
 
+// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_init(&m_conf);
+		break;
+// ajpina END
+
 	default:
 		break;
 	}
@@ -250,6 +257,11 @@ void mc_interface_set_configuration(mc_configuration *configuration) {
 	if (m_conf.motor_type != configuration->motor_type) {
 		mcpwm_deinit();
 		mcpwm_foc_deinit();
+
+	// ajpina INIT
+		mcpwm_vhz_deinit();
+	// ajpina END
+
 		gpdrive_deinit();
 
 		m_conf = *configuration;
@@ -267,6 +279,12 @@ void mc_interface_set_configuration(mc_configuration *configuration) {
 		case MOTOR_TYPE_GPD:
 			gpdrive_init(&m_conf);
 			break;
+
+	// ajpina INIT
+		case MOTOR_TYPE_VHZ:
+			mcpwm_vhz_init(&m_conf);
+			break;
+	// ajpina END
 
 		default:
 			break;
@@ -291,6 +309,12 @@ void mc_interface_set_configuration(mc_configuration *configuration) {
 		gpdrive_set_configuration(&m_conf);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_configuration(&m_conf);
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -311,6 +335,12 @@ bool mc_interface_dccal_done(void) {
 	case MOTOR_TYPE_GPD:
 		ret = gpdrive_is_dccal_done();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_is_dccal_done();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -393,6 +423,12 @@ mc_state mc_interface_get_state(void) {
 		ret = mcpwm_foc_get_state();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_state();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -415,6 +451,12 @@ void mc_interface_set_duty(float dutyCycle) {
 		mcpwm_foc_set_duty(DIR_MULT * dutyCycle);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_duty(DIR_MULT * dutyCycle);
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -435,6 +477,12 @@ void mc_interface_set_duty_noramp(float dutyCycle) {
 		mcpwm_foc_set_duty_noramp(DIR_MULT * dutyCycle);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_duty_noramp(DIR_MULT * dutyCycle);
+		break;
+	// ajpina INIT
+
 	default:
 		break;
 	}
@@ -454,6 +502,12 @@ void mc_interface_set_pid_speed(float rpm) {
 	case MOTOR_TYPE_FOC:
 		mcpwm_foc_set_pid_speed(DIR_MULT * rpm);
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_pid_speed(DIR_MULT * rpm);
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -480,6 +534,12 @@ void mc_interface_set_pid_pos(float pos) {
 		mcpwm_foc_set_pid_pos(pos);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_pid_pos(pos);
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -490,6 +550,7 @@ void mc_interface_set_current(float current) {
 		return;
 	}
 
+
 	switch (m_conf.motor_type) {
 	case MOTOR_TYPE_BLDC:
 	case MOTOR_TYPE_DC:
@@ -499,6 +560,12 @@ void mc_interface_set_current(float current) {
 	case MOTOR_TYPE_FOC:
 		mcpwm_foc_set_current(DIR_MULT * current);
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_current(DIR_MULT * current);
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -524,6 +591,12 @@ void mc_interface_set_brake_current(float current) {
 		// For timeout to stop the output
 		gpdrive_set_mode(GPD_OUTPUT_MODE_NONE);
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_brake_current(DIR_MULT * current);
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -572,6 +645,12 @@ void mc_interface_set_handbrake(float current) {
 		mcpwm_foc_set_handbrake(current);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_set_handbrake(current);
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -614,6 +693,12 @@ float mc_interface_get_duty_cycle_set(void) {
 		ret = mcpwm_foc_get_duty_cycle_set();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_duty_cycle_set();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -633,6 +718,12 @@ float mc_interface_get_duty_cycle_now(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_duty_cycle_now();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_duty_cycle_now();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -658,6 +749,12 @@ float mc_interface_get_sampling_frequency_now(void) {
 		ret = gpdrive_get_switching_frequency_now();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_sampling_frequency_now();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -677,6 +774,12 @@ float mc_interface_get_rpm(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_rpm();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_rpm();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -774,6 +877,12 @@ float mc_interface_get_tot_current(void) {
 		ret = mcpwm_foc_get_tot_current();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -793,6 +902,12 @@ float mc_interface_get_tot_current_filtered(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_tot_current_filtered();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current_filtered();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -814,6 +929,12 @@ float mc_interface_get_tot_current_directional(void) {
 		ret = mcpwm_foc_get_tot_current_directional();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current_directional();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -833,6 +954,12 @@ float mc_interface_get_tot_current_directional_filtered(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_tot_current_directional_filtered();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current_directional_filtered();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -854,6 +981,12 @@ float mc_interface_get_tot_current_in(void) {
 		ret = mcpwm_foc_get_tot_current_in();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current_in();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -874,6 +1007,12 @@ float mc_interface_get_tot_current_in_filtered(void) {
 		ret = mcpwm_foc_get_tot_current_in_filtered();
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tot_current_in_filtered();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -893,6 +1032,12 @@ float mc_interface_get_abs_motor_current_unbalance(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_abs_motor_current_unbalance();
 		break;
+	
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_abs_motor_current_unbalance();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -914,6 +1059,12 @@ int mc_interface_get_tachometer_value(bool reset) {
 		ret = mcpwm_foc_get_tachometer_value(reset);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tachometer_value(reset);
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -933,6 +1084,12 @@ int mc_interface_get_tachometer_abs_value(bool reset) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_tachometer_abs_value(reset);
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_tachometer_abs_value(reset);
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -957,6 +1114,12 @@ float mc_interface_get_last_inj_adc_isr_duration(void) {
 	case MOTOR_TYPE_GPD:
 		ret = gpdrive_get_last_adc_isr_duration();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_last_adc_isr_duration();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -1029,6 +1192,12 @@ float mc_interface_get_pid_pos_now(void) {
 	case MOTOR_TYPE_FOC:
 		ret = mcpwm_foc_get_pid_pos_now();
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		ret = mcpwm_vhz_get_pid_pos_now();
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -1183,6 +1352,8 @@ float mc_interface_get_distance_abs(void) {
  *
  */
 int mc_interface_try_input(void) {
+
+
 	// TODO: Remove this later
 	if (mc_interface_get_state() == MC_STATE_DETECTING) {
 		mcpwm_stop_pwm();
@@ -1212,6 +1383,14 @@ int mc_interface_try_input(void) {
 			retval = 1;
 		}
 		break;
+
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		if (!mcpwm_vhz_init_done()) {
+			retval = 1;
+		}
+		break;
+	// ajpina END
 
 	default:
 		break;
@@ -1282,6 +1461,12 @@ void mc_interface_fault_stop(mc_fault_code fault) {
 		gpdrive_set_mode(GPD_OUTPUT_MODE_NONE);
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_stop_pwm();
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
@@ -1342,8 +1527,20 @@ void mc_interface_mc_timer_isr(void) {
 	m_motor_current_iterations++;
 	m_input_current_iterations++;
 
-	m_motor_id_sum += mcpwm_foc_get_id();
-	m_motor_iq_sum += mcpwm_foc_get_iq();
+	// ajpina INIT
+	if (m_conf.motor_type == MOTOR_TYPE_VHZ) {
+		m_motor_id_sum += mcpwm_vhz_get_id();
+		m_motor_iq_sum += mcpwm_vhz_get_iq();
+	} else {
+		m_motor_id_sum += mcpwm_foc_get_id();
+		m_motor_iq_sum += mcpwm_foc_get_iq();
+	}
+	// ajpina END
+
+	// BEFORE ajpina
+	// m_motor_id_sum += mcpwm_foc_get_id();
+	// m_motor_iq_sum += mcpwm_foc_get_iq();
+
 	m_motor_id_iterations++;
 	m_motor_iq_iterations++;
 
@@ -1354,6 +1551,13 @@ void mc_interface_mc_timer_isr(void) {
 		abs_current = mcpwm_foc_get_abs_motor_current();
 		abs_current_filtered = mcpwm_foc_get_abs_motor_current_filtered();
 	}
+
+	// ajpina INIT
+	if (m_conf.motor_type == MOTOR_TYPE_VHZ) {
+		abs_current = mcpwm_vhz_get_abs_motor_current();
+		abs_current_filtered = mcpwm_vhz_get_abs_motor_current_filtered();
+	}
+	// ajpina END
 
 	// Current fault code
 	if (m_conf.l_slow_abs_current) {
@@ -1516,7 +1720,19 @@ void mc_interface_mc_timer_isr(void) {
 //				m_phase_samples[m_sample_now] = (uint8_t)(mcpwm_foc_get_phase_observer() / 360.0 * 250.0);
 //				float ang = utils_angle_difference(mcpwm_foc_get_phase_observer(), mcpwm_foc_get_phase_encoder()) + 180.0;
 //				m_phase_samples[m_sample_now] = (uint8_t)(ang / 360.0 * 250.0);
-			} else {
+			}
+
+			// ajpina INIT
+			else if (m_conf.motor_type == MOTOR_TYPE_VHZ) {
+				zero = (ADC_V_L1 + ADC_V_L2 + ADC_V_L3) / 3;
+				m_phase_samples[m_sample_now] = (uint8_t)(mcpwm_vhz_get_phase() / 360.0 * 250.0);
+//				m_phase_samples[m_sample_now] = (uint8_t)(mcpwm_vhz_get_phase_observer() / 360.0 * 250.0);
+//				float ang = utils_angle_difference(mcpwm_vhz_get_phase_observer(), mcpwm_vhz_get_phase_encoder()) + 180.0;
+//				m_phase_samples[m_sample_now] = (uint8_t)(ang / 360.0 * 250.0);
+			}
+			// ajpina END
+
+			else {
 				zero = mcpwm_vzero;
 				m_phase_samples[m_sample_now] = 0;
 			}
@@ -1559,10 +1775,38 @@ void mc_interface_adc_inj_int_handler(void) {
 	case MOTOR_TYPE_FOC:
 		break;
 
+	// ajpina INIT
+	case MOTOR_TYPE_VHZ:
+		break;
+	// ajpina END
+
 	default:
 		break;
 	}
 }
+
+
+
+// ajpina INIT
+/**
+ * Allow FOC to be implemented with different control strategy.
+ */
+void mc_interface_tim_sample_int_handler(void){
+	switch (m_conf.motor_type) {
+	case MOTOR_TYPE_FOC:
+		mcpwm_foc_tim_sample_int_handler();
+		break;
+
+	case MOTOR_TYPE_VHZ:
+		mcpwm_vhz_tim_sample_int_handler();
+		break;
+
+	default:
+		break;
+	}
+}
+//ajpina END
+
 
 /**
  * Update the override limits for a configuration based on MOSFET temperature etc.

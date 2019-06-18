@@ -22,6 +22,7 @@
 #include "terminal.h"
 #include "mcpwm.h"
 #include "mcpwm_foc.h"
+#include "mcpwm_vhz.h"    // ajpina
 #include "mc_interface.h"
 #include "commands.h"
 #include "hw.h"
@@ -426,7 +427,17 @@ void terminal_process_string(char *str) {
 			commands_printf("This command requires four arguments.\n");
 		}
 	} else if (strcmp(argv[0], "foc_state") == 0) {
-		mcpwm_foc_print_state();
+		// ajpina INIT
+		if(mcconf.motor_type == MOTOR_TYPE_FOC ){
+			mcpwm_foc_print_state();
+		}
+		if(mcconf.motor_type == MOTOR_TYPE_VHZ ){
+			mcpwm_vhz_print_state();
+		}
+		// ajpina END
+
+		// before ajpina
+		// mcpwm_foc_print_state();
 		commands_printf(" ");
 	} else if (strcmp(argv[0], "hw_status") == 0) {
 		commands_printf("Firmware: %d.%d", FW_VERSION_MAJOR, FW_VERSION_MINOR);

@@ -8,7 +8,13 @@
 #include <stdbool.h>
 
 // Constants
-#define MCCONF_SIGNATURE		503309878
+// ajpina INIT
+#define MCCONF_SIGNATURE		1276604319
+// ajpina END
+
+// before ajpina
+//#define MCCONF_SIGNATURE		503309878
+
 #define APPCONF_SIGNATURE		1962523771
 
 // Functions
