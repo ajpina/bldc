@@ -570,6 +570,11 @@ void mcpwm_vhz_set_pid_pos(float pos) {
 	m_control_mode = CONTROL_MODE_POS;
 	m_pos_pid_set = pos;
 
+	// ajpina INIT
+	float initial_speed = 500;
+	m_speed_pid_set_rpm = initial_speed;
+	// ajpina END
+
 	if (m_state != MC_STATE_RUNNING) {
 		m_state = MC_STATE_RUNNING;
 	}
@@ -2114,22 +2119,23 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 		// ajpina INIT
 
 		// Allow start in SPEED CONTROL
-		if (m_control_mode == CONTROL_MODE_SPEED ) {
+		if (m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS) {
 			static float fake_angle = 0.0;
 			fake_angle += dt * m_speed_pid_set_rpm * M_PI / 30.0;
 			utils_norm_angle_rad(&fake_angle);
 			m_motor_state.phase_fake = fake_angle;
 		}
 
+		m_motor_state.vd_target = 0.0; // ajpina
+		m_motor_state.vq_target = mcpwm_vhz_voltage_slew_rate_limiter( iq_set_tmp ); // ajpina
+
 		// Reduces voltage to prevent over-current since current is no longer
 		// controlled
 		if(m_motor_state.i_abs_filter > 0.9*m_conf->lo_current_max){
-			m_iq_set *= 0.99;
-			//iq_set_tmp *= 0.99;
+			m_motor_state.vq_target *= 0.99;
+			m_iq_set = m_motor_state.vq_target;
 		}
 
-		m_motor_state.vd_target = 0.0; // ajpina
-		m_motor_state.vq_target = mcpwm_vhz_voltage_slew_rate_limiter( iq_set_tmp ); // ajpina
 		// ajpina END
 
 		control_voltage(&m_motor_state, dt);
