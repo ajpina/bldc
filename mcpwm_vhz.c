@@ -571,8 +571,8 @@ void mcpwm_vhz_set_pid_pos(float pos) {
 	m_pos_pid_set = pos;
 
 	// ajpina INIT
-	float initial_speed = 500;
-	m_speed_pid_set_rpm = initial_speed;
+	//float initial_speed = 500;
+	//m_speed_pid_set_rpm = initial_speed;
 	// ajpina END
 
 	if (m_state != MC_STATE_RUNNING) {
@@ -2849,16 +2849,18 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 //	}
 
 	// ajpina INIT
-	if (encoder_is_configured()) {
-		if (encoder_index_found()) {
-			m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
-		} else {
-			// Rotate the motor with 40 % power until the encoder index is found.
-			m_iq_set = 0.4 * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
-		}
-	} else {
-		m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
-	}
+	//if (encoder_is_configured()) {
+	//	if (encoder_index_found()) {
+	//		m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
+	//	} else {
+	//		// Rotate the motor with 40 % power until the encoder index is found.
+	//		m_iq_set = 0.4 * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
+	//	}
+	//} else {
+	//	m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
+	//}
+	const float max_speed_rpm_pos_control = 2000.0;
+	m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	// ajpina END
 
 
@@ -2871,7 +2873,7 @@ static void run_pid_control_speed(float dt) {
 	float d_term;
 
 	// PID is off. Return.
-	if (m_control_mode != CONTROL_MODE_SPEED) {
+	if (m_control_mode != CONTROL_MODE_SPEED && m_control_mode != CONTROL_MODE_POS ) {
 		i_term = 0.0;
 		prev_error = 0.0;
 		return;
