@@ -2536,22 +2536,15 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 
 	// ajpina INIT
 	const float actual_rpm = fabsf(mcpwm_vhz_get_rpm());
-	const float fake_rpm = 1.5 * fabsf(m_speed_pid_set_rpm);
-	static bool spinning = false;
-	if( actual_rpm > fake_rpm ){
-		utils_fast_sincos_better(state_m->phase, &s, &c);
-		spinning = true;
-	} else {
-		if( !spinning ){
-			utils_fast_sincos_better(state_m->phase_fake, &s, &c);
-		} else {
-			utils_fast_sincos_better(state_m->phase, &s, &c);
-		}
 
+	if( actual_rpm > 100.0 && fabsf(m_speed_pid_set_rpm) > 100.0 ){
+		utils_fast_sincos_better(state_m->phase, &s, &c);
+	} else if( fabsf(m_speed_pid_set_rpm) <= 100.0 ) {
+		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
+	} else {
+		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
 	}
-	if(actual_rpm < 10.0){
-		spinning = false;
-	}
+
 	// ajpina END
 
 	// before ajpina
@@ -2883,11 +2876,13 @@ static void run_pid_control_speed(float dt) {
 	float error = m_speed_pid_set_rpm - rpm;
 
 	// Too low RPM set. Reset state and return.
-	if (fabsf(m_speed_pid_set_rpm) < m_conf->s_pid_min_erpm) {
-		i_term = 0.0;
-		prev_error = error;
-		return;
-	}
+	// ajpina INIT
+	//if (fabsf(m_speed_pid_set_rpm) < m_conf->s_pid_min_erpm) {
+	//	i_term = 0.0;
+	//	prev_error = error;
+	//	return;
+	//}
+	// ajpina END
 
 	// Compute parameters
 	p_term = error * m_conf->s_pid_kp * (1.0 / 20.0);
