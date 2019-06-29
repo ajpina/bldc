@@ -87,5 +87,7 @@ uint32_t utils_crc32c(uint8_t *data, uint32_t len);
 #define SIN_30_DEG				(0.5)
 #define COS_MINUS_30_DEG		(0.86602540378)
 #define SIN_MINUS_30_DEG		(-0.5)
+#define SQRT3					(1.73205080757)			// ajpina
+#define SQRT3_BY_3				(1.73205080757 / 3.0f)	// ajpina
 
 #endif /* UTILS_H_ */

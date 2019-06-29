@@ -1686,7 +1686,7 @@ float mcpwm_vhz_get_voltage_ref(float f_ref){
 		v_ref = v_min;
 	}
 
-	return v_ref;
+	return v_ref * SQRT3_BY_3;
 }
 
 
@@ -2132,7 +2132,7 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 		// Reduces voltage to prevent over-current since current is no longer
 		// controlled
 		if(m_motor_state.i_abs_filter > 0.9*m_conf->lo_current_max){
-			m_motor_state.vq_target *= 0.99;
+			m_motor_state.vq_target *= 0.9;
 			m_iq_set = m_motor_state.vq_target;
 		}
 
@@ -2853,7 +2853,11 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	//	m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
 	//}
 	const float max_speed_rpm_pos_control = 2000.0;
-	m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
+	if( fabsf(error) > 5.0 ){
+		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
+	} else {
+		m_speed_pid_set_rpm = 0.0;
+	}
 	// ajpina END
 
 
