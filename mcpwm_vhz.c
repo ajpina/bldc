@@ -2131,10 +2131,10 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 
 		// Reduces voltage to prevent over-current since current is no longer
 		// controlled
-		if(m_motor_state.i_abs_filter > 0.9*m_conf->lo_current_max){
-			m_motor_state.vq_target *= 0.9;
-			m_iq_set = m_motor_state.vq_target;
-		}
+		//if(m_motor_state.i_abs_filter > 0.9*m_conf->lo_current_max){
+		//	m_motor_state.vq_target *= 0.9;
+		//	m_iq_set = m_motor_state.vq_target;
+		//}
 
 		// ajpina END
 
@@ -2537,9 +2537,9 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	// ajpina INIT
 	const float actual_rpm = fabsf(mcpwm_vhz_get_rpm());
 
-	if( actual_rpm > 100.0 && fabsf(m_speed_pid_set_rpm) > 100.0 ){
+	if( actual_rpm > m_conf->s_pid_min_erpm && fabsf(m_speed_pid_set_rpm) > m_conf->s_pid_min_erpm ){
 		utils_fast_sincos_better(state_m->phase, &s, &c);
-	} else if( fabsf(m_speed_pid_set_rpm) <= 100.0 ) {
+	} else if( fabsf(m_speed_pid_set_rpm) <= m_conf->s_pid_min_erpm ) {
 		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
 	} else {
 		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
@@ -2567,6 +2567,20 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 
 	state_m->vd = state_m->vd_int + Verr_d * m_conf->foc_current_kp; // ajpina
 	state_m->vq = state_m->vq_int + Verr_q * m_conf->foc_current_kp; // ajpina
+
+	// Prevent over current
+	if(state_m->i_abs_filter > 0.9*m_conf->lo_current_max){
+		state_m->vd = 0.0;
+		state_m->vq *= 0.5;
+	}
+	// Decrease DC current progressively when locked
+	if(m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS){
+		if(m_speed_pid_set_rpm == 0.0 && state_m->i_abs_filter > 4.0){
+			state_m->vd = 0.0;
+			state_m->vq *= 0.9;
+		}
+	}
+
 	// ajpina END
 
 
@@ -2853,7 +2867,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	//	m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
 	//}
 	const float max_speed_rpm_pos_control = 2000.0;
-	if( fabsf(error) > 5.0 ){
+	if( fabsf(error) > 3.0 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
 		m_speed_pid_set_rpm = 0.0;
