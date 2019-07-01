@@ -2575,7 +2575,7 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	}
 	// Decrease DC current progressively when locked
 	if(m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS){
-		if(m_speed_pid_set_rpm == 0.0 && state_m->i_abs_filter > 4.0){
+		if(m_speed_pid_set_rpm == 0.123 && state_m->i_abs_filter > 4.0){
 			state_m->vd = 0.0;
 			state_m->vq *= 0.9;
 		}
@@ -2870,7 +2870,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	if( fabsf(error) > 3.0 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
-		m_speed_pid_set_rpm = 0.0;
+		m_speed_pid_set_rpm = 0.123;
 	}
 	// ajpina END
 
