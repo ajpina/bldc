@@ -2121,7 +2121,12 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 		// Allow start in SPEED CONTROL
 		if (m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS) {
 			static float fake_angle = 0.0;
-			fake_angle += dt * m_speed_pid_set_rpm * M_PI / 30.0;
+			// To avoid locking the rotor
+			if(m_speed_pid_set_rpm == 0.0){
+				fake_angle += dt * 0.1 * M_PI / 30.0;
+			} else {
+				fake_angle += dt * m_speed_pid_set_rpm * M_PI / 30.0;
+			}
 			utils_norm_angle_rad(&fake_angle);
 			m_motor_state.phase_fake = fake_angle;
 		}
@@ -2870,7 +2875,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	if( fabsf(error) > 3.0 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
-		m_speed_pid_set_rpm = 0.123;
+		m_speed_pid_set_rpm = 0.0;
 	}
 	// ajpina END
 
@@ -2892,6 +2897,7 @@ static void run_pid_control_speed(float dt) {
 
 	const float rpm = mcpwm_vhz_get_rpm();
 	float error = m_speed_pid_set_rpm - rpm;
+
 
 	// Too low RPM set. Reset state and return.
 	// ajpina INIT
