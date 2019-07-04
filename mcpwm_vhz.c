@@ -116,6 +116,7 @@ static volatile bool m_init_done = false;
 static volatile float m_gamma_now;
 static volatile systime_t m_tick_time; // ajpina
 static volatile float m_previous_voltage; // ajpina
+static volatile systime_t m_dc_current_time; // ajpina
 
 
 #ifdef HW_HAS_3_SHUNTS
@@ -553,6 +554,10 @@ void mcpwm_vhz_set_duty_noramp(float dutyCycle) {
 void mcpwm_vhz_set_pid_speed(float rpm) {
 	m_control_mode = CONTROL_MODE_SPEED;
 	m_speed_pid_set_rpm = rpm;
+
+	if(m_speed_pid_set_rpm == 0.0){
+		m_dc_current_time = chVTGetSystemTimeX();
+	}
 
 	if (m_state != MC_STATE_RUNNING) {
 		m_state = MC_STATE_RUNNING;
@@ -2121,12 +2126,7 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 		// Allow start in SPEED CONTROL
 		if (m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS) {
 			static float fake_angle = 0.0;
-			// To avoid locking the rotor
-			if(m_speed_pid_set_rpm == 0.0){
-				fake_angle += dt * 0.1 * M_PI / 30.0;
-			} else {
-				fake_angle += dt * m_speed_pid_set_rpm * M_PI / 30.0;
-			}
+			fake_angle += dt * m_speed_pid_set_rpm * M_PI / 30.0;
 			utils_norm_angle_rad(&fake_angle);
 			m_motor_state.phase_fake = fake_angle;
 		}
@@ -2579,12 +2579,12 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 		state_m->vq *= 0.5;
 	}
 	// Decrease DC current progressively when locked
-	if(m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS){
-		if(m_speed_pid_set_rpm == 0.123 && state_m->i_abs_filter > 4.0){
-			state_m->vd = 0.0;
-			state_m->vq *= 0.9;
-		}
-	}
+	//if(m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS){
+	//	if(m_speed_pid_set_rpm == 0.123 && state_m->i_abs_filter > 4.0){
+	//		state_m->vd = 0.0;
+	//		state_m->vq *= 0.9;
+	//	}
+	//}
 
 	// ajpina END
 
@@ -2876,6 +2876,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
 		m_speed_pid_set_rpm = 0.0;
+		m_dc_current_time = chVTGetSystemTimeX();
 	}
 	// ajpina END
 
@@ -2894,6 +2895,17 @@ static void run_pid_control_speed(float dt) {
 		prev_error = 0.0;
 		return;
 	}
+
+	// Wait 30sec with DC current and switch off
+	if(m_speed_pid_set_rpm == 0.0){
+		if(((float)ST2MS(chVTTimeElapsedSinceX(m_dc_current_time))) > 30000.0){
+			m_control_mode = CONTROL_MODE_NONE;
+			m_state = MC_STATE_OFF;
+			stop_pwm_hw();
+			return;
+		}
+	}
+
 
 	const float rpm = mcpwm_vhz_get_rpm();
 	float error = m_speed_pid_set_rpm - rpm;
