@@ -241,6 +241,7 @@ void mcpwm_vhz_init(volatile mc_configuration *configuration) {
 	m_gamma_now = 0.0;
 	// ajpina INIT
 	m_tick_time = chVTGetSystemTimeX();
+	m_dc_current_time = m_tick_time;
 	m_previous_voltage = 0.0;
 	// ajpina END
 	memset((void*)&m_motor_state, 0, sizeof(motor_state_t));
@@ -1672,6 +1673,7 @@ void mcpwm_vhz_print_state(void) {
 	commands_printf("fe:           %.2f", (double)(m_pll_speed / (2.0 * M_PI)));  // ajpina
 	commands_printf("eRPM:         %.2f", (double)mcpwm_vhz_get_rpm());  // ajpina
 	commands_printf("V_ref:        %.2f", (double)mcpwm_vhz_get_voltage_ref(m_pll_speed / (2.0 * M_PI))); // ajpina
+	commands_printf("dc_current_time: %.2f", ((double)ST2MS(chVTTimeElapsedSinceX(m_dc_current_time))) );
 }
 
 // ajpina INIT
@@ -2875,8 +2877,10 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	if( fabsf(error) > 3.0 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
+		if(m_speed_pid_set_rpm != 0.0){
+			m_dc_current_time = chVTGetSystemTimeX();
+		}
 		m_speed_pid_set_rpm = 0.0;
-		m_dc_current_time = chVTGetSystemTimeX();
 	}
 	// ajpina END
 
