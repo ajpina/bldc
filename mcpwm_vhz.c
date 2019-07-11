@@ -1682,8 +1682,8 @@ float mcpwm_vhz_get_voltage_ref(float f_ref){
 	float f_ref_abs = fabsf(f_ref);
 	const float f_max = 200.0;
 	const float f_min = 10.0;
-	const float v_max = 12.0;
-	const float v_min = 3.0;
+	const float v_max = 11.5;
+	const float v_min = 4.0;
 
 	if( f_ref_abs > f_max ){
 		v_ref = v_max;
@@ -2576,10 +2576,10 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	state_m->vq = state_m->vq_int + Verr_q * m_conf->foc_current_kp; // ajpina
 
 	// Prevent over current
-	if(state_m->i_abs_filter > 0.9*m_conf->lo_current_max){
-		state_m->vd = 0.0;
-		state_m->vq *= 0.5;
-	}
+	//if(state_m->i_abs_filter > 0.9*m_conf->lo_current_max){
+	//	state_m->vd = 0.0;
+	//	state_m->vq *= 0.5;
+	//}
 	// Decrease DC current progressively when locked
 	//if(m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS){
 	//	if(m_speed_pid_set_rpm == 0.123 && state_m->i_abs_filter > 4.0){
