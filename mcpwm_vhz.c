@@ -1673,7 +1673,7 @@ void mcpwm_vhz_print_state(void) {
 	commands_printf("fe:           %.2f", (double)(m_pll_speed / (2.0 * M_PI)));  // ajpina
 	commands_printf("eRPM:         %.2f", (double)mcpwm_vhz_get_rpm());  // ajpina
 	commands_printf("V_ref:        %.2f", (double)mcpwm_vhz_get_voltage_ref(m_pll_speed / (2.0 * M_PI))); // ajpina
-	commands_printf("dc_current_time: %.2f", ((double)ST2MS(chVTTimeElapsedSinceX(m_dc_current_time))) );
+	commands_printf("max_current:  %.2f", (double)m_conf->lo_current_max);
 }
 
 // ajpina INIT
@@ -2103,21 +2103,22 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 
 		// Apply current limits
 		// TODO: Consider D axis current for the input current as well.
-		const float mod_q = m_motor_state.mod_q;
-		if (mod_q > 0.001) {
-			utils_truncate_number(&iq_set_tmp, m_conf->lo_in_current_min / mod_q, m_conf->lo_in_current_max / mod_q);
-		} else if (mod_q < -0.001) {
-			utils_truncate_number(&iq_set_tmp, m_conf->lo_in_current_max / mod_q, m_conf->lo_in_current_min / mod_q);
-		}
+		// Commented by ajpina
+		//const float mod_q = m_motor_state.mod_q;
+		//if (mod_q > 0.001) {
+		//	utils_truncate_number(&iq_set_tmp, m_conf->lo_in_current_min / mod_q, m_conf->lo_in_current_max / mod_q);
+		//} else if (mod_q < -0.001) {
+		//	utils_truncate_number(&iq_set_tmp, m_conf->lo_in_current_max / mod_q, m_conf->lo_in_current_min / mod_q);
+		//}
 
-		if (mod_q > 0.0) {
-			utils_truncate_number(&iq_set_tmp, m_conf->lo_current_min, m_conf->lo_current_max);
-		} else {
-			utils_truncate_number(&iq_set_tmp, -m_conf->lo_current_max, -m_conf->lo_current_min);
-		}
+		//if (mod_q > 0.0) {
+		//	utils_truncate_number(&iq_set_tmp, m_conf->lo_current_min, m_conf->lo_current_max);
+		//} else {
+		//	utils_truncate_number(&iq_set_tmp, -m_conf->lo_current_max, -m_conf->lo_current_min);
+		//}
 
-		utils_saturate_vector_2d(&id_set_tmp, &iq_set_tmp,
-				utils_max_abs(m_conf->lo_current_max, m_conf->lo_current_min));
+		//utils_saturate_vector_2d(&id_set_tmp, &iq_set_tmp,
+		//		utils_max_abs(m_conf->lo_current_max, m_conf->lo_current_min));
 
 		// before ajpina
 		//m_motor_state.id_target = id_set_tmp;
@@ -2569,8 +2570,17 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	state_m->i_abs = sqrtf(SQ(state_m->id) + SQ(state_m->iq));
 	state_m->i_abs_filter = sqrtf(SQ(state_m->id_filter) + SQ(state_m->iq_filter));
 
+	// Current limiter
+	float vq_reducer = 0.0;
+	float vq_reducer_kp = 1.0;
+	if(state_m->i_abs_filter > m_conf->lo_current_max){
+		vq_reducer = utils_map(state_m->i_abs_filter, m_conf->lo_current_max, m_conf->l_abs_current_max, 0.0, fabsf(state_m->vq_target));
+		utils_truncate_number(&vq_reducer, 0.0, fabsf(state_m->vq_target));
+		vq_reducer = SIGN(state_m->vq_target) * vq_reducer * vq_reducer_kp;
+	}
+
 	float Verr_d = state_m->vd_target - state_m->vd;  // ajpina
-	float Verr_q = state_m->vq_target - state_m->vq;  // ajpina
+	float Verr_q = state_m->vq_target - state_m->vq - vq_reducer;  // ajpina
 
 	state_m->vd = state_m->vd_int + Verr_d * m_conf->foc_current_kp; // ajpina
 	state_m->vq = state_m->vq_int + Verr_q * m_conf->foc_current_kp; // ajpina
