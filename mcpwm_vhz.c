@@ -1683,7 +1683,7 @@ float mcpwm_vhz_get_voltage_ref(float f_ref){
 	const float f_max = 200.0;
 	const float f_min = 10.0;
 	const float v_max = 11.5;
-	const float v_min = 4.0;
+	const float v_min = 4.5;
 
 	if( f_ref_abs > f_max ){
 		v_ref = v_max;
@@ -2572,7 +2572,7 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 
 	// Current limiter
 	float vq_reducer = 0.0;
-	float vq_reducer_kp = 1.0;
+	float vq_reducer_kp = 6.5;
 	if(state_m->i_abs_filter > m_conf->lo_current_max){
 		vq_reducer = utils_map(state_m->i_abs_filter, m_conf->lo_current_max, m_conf->l_abs_current_max, 0.0, fabsf(state_m->vq_target));
 		utils_truncate_number(&vq_reducer, 0.0, fabsf(state_m->vq_target));
@@ -2883,7 +2883,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	//} else {
 	//	m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
 	//}
-	const float max_speed_rpm_pos_control = 2000.0;
+	const float max_speed_rpm_pos_control = 4000.0;
 	if( fabsf(error) > 3.0 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
