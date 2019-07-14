@@ -2884,7 +2884,7 @@ static void run_pid_control_pos(float angle_now, float angle_set, float dt) {
 	//	m_iq_set = output * mcpwm_vhz_get_voltage_ref( m_pll_speed / (2.0 * M_PI) );
 	//}
 	const float max_speed_rpm_pos_control = 4000.0;
-	if( fabsf(error) > 3.0 ){
+	if( fabsf(error) > 1.5 ){
 		m_speed_pid_set_rpm = output * max_speed_rpm_pos_control;
 	} else {
 		if(m_speed_pid_set_rpm != 0.0){
