@@ -2545,7 +2545,8 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	// ajpina INIT
 	const float actual_rpm = fabsf(mcpwm_vhz_get_rpm());
 
-	if( actual_rpm > m_conf->s_pid_min_erpm && fabsf(m_speed_pid_set_rpm) > m_conf->s_pid_min_erpm ){
+	if( actual_rpm > m_conf->s_pid_min_erpm && fabsf(m_speed_pid_set_rpm) > m_conf->s_pid_min_erpm &&
+			actual_rpm < 1.1*fabsf(m_speed_pid_set_rpm) ){
 		utils_fast_sincos_better(state_m->phase, &s, &c);
 	} else if( fabsf(m_speed_pid_set_rpm) <= m_conf->s_pid_min_erpm ) {
 		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
