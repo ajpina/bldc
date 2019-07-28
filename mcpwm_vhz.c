@@ -2129,7 +2129,7 @@ void mcpwm_vhz_adc_int_handler(void *p, uint32_t flags) {
 		// Allow start in SPEED CONTROL
 		if (m_control_mode == CONTROL_MODE_SPEED || m_control_mode == CONTROL_MODE_POS) {
 			static float fake_angle = 0.0;
-			fake_angle += dt * (m_speed_pid_set_rpm / m_conf->si_motor_poles / 2.0) * M_PI / 30.0;
+			fake_angle += dt * (m_speed_pid_set_rpm) * M_PI / 30.0;
 			utils_norm_angle_rad(&fake_angle);
 			m_motor_state.phase_fake = fake_angle;
 		}
@@ -2545,8 +2545,7 @@ static void control_voltage(volatile motor_state_t *state_m, float dt) {
 	// ajpina INIT
 	const float actual_rpm = fabsf(mcpwm_vhz_get_rpm());
 
-	if( actual_rpm > m_conf->s_pid_min_erpm && fabsf(m_speed_pid_set_rpm) > m_conf->s_pid_min_erpm &&
-			actual_rpm < 1.1*fabsf(m_speed_pid_set_rpm) ){
+	if( actual_rpm > m_conf->s_pid_min_erpm && fabsf(m_speed_pid_set_rpm) > m_conf->s_pid_min_erpm ){
 		utils_fast_sincos_better(state_m->phase, &s, &c);
 	} else if( fabsf(m_speed_pid_set_rpm) <= m_conf->s_pid_min_erpm ) {
 		utils_fast_sincos_better(state_m->phase_fake, &s, &c);
@@ -2913,7 +2912,7 @@ static void run_pid_control_speed(float dt) {
 
 	// Wait 30sec with DC current and switch off
 	if(m_speed_pid_set_rpm == 0.0){
-		if(((float)ST2MS(chVTTimeElapsedSinceX(m_dc_current_time))) > 30000.0){
+		if(((float)ST2MS(chVTTimeElapsedSinceX(m_dc_current_time))) > 10000.0){
 			m_control_mode = CONTROL_MODE_NONE;
 			m_state = MC_STATE_OFF;
 			stop_pwm_hw();
